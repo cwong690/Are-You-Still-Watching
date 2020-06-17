@@ -113,10 +113,6 @@ The histogram below shows the predicted ratings of all the user/movie pairs; the
 
 <img alt="coldstart" src='images/cold_start_hist.png'>
 
-
-
-
-
 ## Statistical Analysis
 
 The basis of recommender systems is assigning latent features to both movies and users. Each user has particular movies and genres they prefer, and those preferences are encoded in the latent feature values. Similarly, each movie is stronger or weaker on certain topics or genres, and those differences will be reflected in their latent scores. 
