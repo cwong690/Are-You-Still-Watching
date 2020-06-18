@@ -28,12 +28,31 @@ We have built a movie recommender system based off of 800,000 reviews given by n
 The data did not require any cleaning prior to use, however we did have several different datasets that needed to be linked together to get final recommendations. 
 
 <b>Training Data</b><br>
-The training data contained a combined 800,000 reviews. Overall, there were 3662 movies reviewed and 5399 unique users. Most of the users rated over 1000 movies, but the majority rated fewer than 100. A breakdown of the count can be shown in the plot below.
+The training data contained a combined 800,000 reviews. Overall, there were 3662 movies reviewed and 5399 unique users. Some of the users rated over 1000 movies, but the majority rated fewer than 100. A breakdown of the count can be shown in the plot below.
 
 
 <img src='images/rating_count_by_user.png'>
 
+<b>Request Data</b><br>
+We were given a file with 200,000 user movie pairs and our task is to predict the rating each user would give the movie. Several of the users in the request file were not present in the training file, meaning we had no information on what movies they had previous watched and what their subjective ratings were. This problem of trying to give ratings to a user with no information is called the "cold start problem". 
 
+The histogram below shows the predicted ratings of all the user/movie pairs; the values of -1 indicate users for which we initially had no suggested rating. The methods of dealing with this are discussed in the Statistical Analysis section. 
+
+<img alt="coldstart" src='images/cold_start_hist.png'>
+
+## Statistical Analysis
+
+The basis of recommender systems is assigning latent features to both movies and users. Each user has particular movies and genres they prefer, and those preferences are encoded in the latent feature values. Similarly, each movie is stronger or weaker on certain topics or genres, and those differences will be reflected in their latent scores. 
+
+We used Spark ALS as the basis for our recommender model. Training the model on the training data allowed us to extract laten features for all the users and movies in the training data. We then could predict each user-movie pair by computing the dot product of the user latent feature vector with the movie latent feature vector. 
+
+We split our training data up into a training and cross validation set in order to tune hyperparameters and pick an optimal error metric for assessing our recommender.
+
+### Finding Similarities for Users and Movies
+
+In order to compute the dot product of the user latent feature vector with the movie latent feature vector, we need to have those features. However, when a movie or user doesn't exist, we need another way of obtain those latent features.
+
+We approached this problem by calculating the cosine similarity between the non-existent user/movie and existing ones. This is done by using the movies data and the users demographic data.
 
 <b>Movie Data</b><br>
 The movie data contains the movie id, title, and genre descriptions. The descriptions are:
@@ -98,34 +117,13 @@ Occupation<br>
 	* 19:  "unemployed"
 	* 20:  "writer"
 
-
-
-- cold starts by count
+<!-- 
 - ratings given by users
 - stats on training and request data
-- screenshots of movie and user demographic data
+- screenshots of movie and user demographic data 
+-->
 
-
-<b>Request Data</b><br>
-We were given a file with 200,000 user movie pairs and our task is to predict the rating each user would give the movie. Several of the users in the request file were not present in the training file, meaning we had no information on what movies they had previous watched and what their subjective ratings were. This problem of trying to give ratings to a user with no information is called the "cold start problem". 
-
-The histogram below shows the predicted ratings of all the user/movie pairs; the values of -1 indicate users for which we initially had no suggested rating. The methods of dealing with this are discussed in the Statistical Analysis section. 
-
-<img alt="coldstart" src='images/cold_start_hist.png'>
-
-## Statistical Analysis
-
-The basis of recommender systems is assigning latent features to both movies and users. Each user has particular movies and genres they prefer, and those preferences are encoded in the latent feature values. Similarly, each movie is stronger or weaker on certain topics or genres, and those differences will be reflected in their latent scores. 
-
-We used Spark ALS as the basis for our recommender model. Training the model on the training data allowed us to extract laten features for all the users and movies in the training data. We then could predict each user-movie pair by computing the dot product of the user latent feature vector with the movie latent feature vector. 
-
-We split our training data up into a training and cross validation set in order to tune hyperparameters and pick an optimal error metric for assessing our recommender.
-
-### Finding Similarities for Users and Movies
-
-In order to computer the dot product of the user latent feature vector with the movie latent feature vector, we need to have those features. However, when a movie or user doesn't exist, we need another way of obtain those latent features.
-
-We approached this problem by calculating the cosine similarity between the non-existent user/movie and existing ones. We set a threshold of who/what the top similar users/movies are and calculated the average of their latent features. 
+Dummy variables are created using each of the categories and then cosine similarity is computed based on the dummy variables. We set a threshold of who/what the top similar users/movies are and calculated the average of their latent features. Using those averages, we predict the ratings for users/items with a cold start!
 
 <details>
     <summary>
